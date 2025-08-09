@@ -3,7 +3,7 @@ const sendMail = require('../plugins/sendMail');
 async function sendContactMail(data) {
   const { name, email, description } = data;
 
-  const subject = 'Liên hệ từ website';
+  const subject = 'Liên hệ từ website Abel Dang';
   const text = `
     Name: ${name || 'N/A'}
     Email: ${email || 'N/A'}
