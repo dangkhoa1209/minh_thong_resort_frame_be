@@ -13,10 +13,6 @@ const contactData = {
   website: "https://example.com",
 };
 
-const logoData = {
-  logo_url: "/uploads/default/banner/Asset 1610.svg",
-};
-
 function buildProject({
   slug,
   title,
@@ -178,13 +174,6 @@ function buildProjectsData() {
 async function upsertSettings() {
   await Setting.bulkWrite(
     [
-      {
-        updateOne: {
-          filter: { key: "logo_active" },
-          update: { $set: { value: logoData } },
-          upsert: true,
-        },
-      },
       {
         updateOne: {
           filter: { key: "contact_info" },
