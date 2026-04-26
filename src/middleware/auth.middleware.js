@@ -30,4 +30,29 @@ function requireAuth(req, res, next) {
   }
 }
 
-module.exports = { requireAuth };
+function normalizeRole(role) {
+  const value = String(role || "").trim().toLowerCase();
+  if (value === "admin") return "owner";
+  return value;
+}
+
+function requireRoles(allowedRoles = []) {
+  const normalizedAllowedRoles = new Set(
+    (Array.isArray(allowedRoles) ? allowedRoles : [])
+      .map((role) => normalizeRole(role))
+      .filter(Boolean)
+  );
+
+  return (req, res, next) => {
+    const role = normalizeRole(req?.user?.role);
+    if (!role || !normalizedAllowedRoles.has(role)) {
+      return res.status(403).json({
+        success: false,
+        error: { code: "FORBIDDEN", message: "You do not have permission to perform this action" },
+      });
+    }
+    return next();
+  };
+}
+
+module.exports = { requireAuth, requireRoles, normalizeRole };

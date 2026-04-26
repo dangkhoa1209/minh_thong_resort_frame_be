@@ -24,7 +24,7 @@ async function run() {
   await AdminUser.create({
     email: email.toLowerCase(),
     password_hash: passwordHash,
-    role: "admin",
+    role: "owner",
     is_active: true,
   });
 
