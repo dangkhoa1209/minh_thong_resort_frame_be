@@ -20,12 +20,15 @@ const imageRowSchema = Joi.object({
 const projectPayloadSchema = Joi.object({
   slug: Joi.string().pattern(/^[a-z0-9-]+$/).required(),
   title: Joi.string().max(200).required(),
+  name: Joi.string().max(200).required(),
+  location: Joi.string().max(200).allow("").optional(),
+  year: Joi.string().max(50).allow("").optional(),
   short_description: Joi.string().max(500).allow("").optional(),
   content: Joi.string().allow("").optional(),
   banner_image: Joi.string().allow("").optional(),
   banner_title: Joi.string().max(200).allow("").optional(),
   banner_subtitle: Joi.string().max(200).allow("").optional(),
-  image_1: Joi.string().required(),
+  image_1: Joi.string().allow("").optional(),
   image_rows: Joi.array().items(imageRowSchema).max(20).default([]),
 });
 

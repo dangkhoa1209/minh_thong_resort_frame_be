@@ -11,13 +11,17 @@ function projectToPublicPath(slug) {
   return `/pages/project/${slug}.html`;
 }
 
+function getProjectCoverImage(project = {}, fallback = "") {
+  return project.banner_image || project.image_1 || fallback || "";
+}
+
 async function fetchProjectsMap(projectIds) {
   if (!projectIds.length) {
     return new Map();
   }
 
   const projects = await Project.find({ _id: { $in: projectIds } })
-    .select("slug title short_description image_1")
+    .select("slug title name short_description banner_image image_1")
     .lean();
 
   return new Map(projects.map((item) => [item._id.toString(), item]));
@@ -33,7 +37,11 @@ async function listShowcaseItems(type, query) {
 
   if (search) {
     const matchedProjects = await Project.find({
-      $or: [{ title: { $regex: search, $options: "i" } }, { slug: { $regex: search, $options: "i" } }],
+      $or: [
+        { title: { $regex: search, $options: "i" } },
+        { name: { $regex: search, $options: "i" } },
+        { slug: { $regex: search, $options: "i" } },
+      ],
     })
       .select("_id")
       .limit(500)
@@ -72,7 +80,8 @@ async function listShowcaseItems(type, query) {
           project_id: item.project_id.toString(),
           project_slug: project.slug,
           project_title: project.title,
-          display_image: project.image_1 || item.display_image || "",
+          project_name: project.name || "",
+          display_image: getProjectCoverImage(project, item.display_image),
           sort_order: item.sort_order,
           is_active: item.is_active,
           updated_at: item.updated_at,
@@ -89,7 +98,7 @@ async function listShowcaseItems(type, query) {
 }
 
 async function getExistingProject(projectId) {
-  const project = await Project.findById(projectId).select("image_1").lean();
+  const project = await Project.findById(projectId).select("banner_image image_1").lean();
   if (!project) {
     const error = new Error("Project not found");
     error.code = "PROJECT_NOT_FOUND";
@@ -114,7 +123,7 @@ async function getShowcaseItemById(type, id) {
   const item = await ShowcaseItem.findOne({ _id: id, type }).lean();
   if (!item) return null;
 
-  const project = await Project.findById(item.project_id).select("slug title image_1").lean();
+  const project = await Project.findById(item.project_id).select("slug title name banner_image image_1").lean();
   if (!project) return null;
 
   return {
@@ -122,7 +131,8 @@ async function getShowcaseItemById(type, id) {
     project_id: item.project_id.toString(),
     project_slug: project.slug,
     project_title: project.title,
-    display_image: project.image_1 || item.display_image || "",
+    project_name: project.name || "",
+    display_image: getProjectCoverImage(project, item.display_image),
     sort_order: item.sort_order,
     is_active: item.is_active,
     updated_at: item.updated_at,
@@ -168,8 +178,9 @@ async function getPublicHomeHighlights() {
       return {
         slug: project.slug,
         title: project.title,
-        short_description: project.short_description || "",
-        image_1: project.image_1 || item.display_image || "",
+        name: project.name || "",
+        short_description: project.short_description || project.title || "",
+        image_1: getProjectCoverImage(project, item.display_image),
         project_url: projectToPublicPath(project.slug),
       };
     })
@@ -192,7 +203,8 @@ async function getPublicHeroSlides() {
       return {
         slug: project.slug,
         title: project.title,
-        image_1: project.image_1 || item.display_image || "",
+        name: project.name || "",
+        image_1: getProjectCoverImage(project, item.display_image),
         project_url: projectToPublicPath(project.slug),
       };
     })

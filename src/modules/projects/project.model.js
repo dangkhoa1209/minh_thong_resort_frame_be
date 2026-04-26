@@ -22,6 +22,9 @@ const projectSchema = new mongoose.Schema(
   {
     slug: { type: String, required: true, unique: true, trim: true, lowercase: true },
     title: { type: String, required: true, trim: true },
+    name: { type: String, default: "", trim: true },
+    location: { type: String, default: "", trim: true },
+    year: { type: String, default: "", trim: true },
     short_description: { type: String, default: "", trim: true },
     content: { type: String, default: "" },
     banner_image: { type: String, default: "" },

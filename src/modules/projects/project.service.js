@@ -4,12 +4,25 @@ function projectToPublicPath(slug) {
   return `/pages/project/${slug}.html`;
 }
 
+function getProjectCoverImage(item = {}) {
+  return item.banner_image || item.image_1 || "";
+}
+
+function normalizeProjectPayload(payload = {}) {
+  return {
+    ...payload,
+    image_1: payload.banner_image || payload.image_1 || "",
+  };
+}
+
 async function listProjects(query) {
   const { page, limit, search } = query;
   const filter = {};
   if (search) {
     filter.$or = [
       { title: { $regex: search, $options: "i" } },
+      { name: { $regex: search, $options: "i" } },
+      { location: { $regex: search, $options: "i" } },
       { slug: { $regex: search, $options: "i" } },
     ];
   }
@@ -18,7 +31,7 @@ async function listProjects(query) {
 
   const [items, total] = await Promise.all([
     Project.find(filter)
-      .select("slug title short_description image_1 updated_at")
+      .select("slug title name location year short_description banner_image image_1 updated_at")
       .sort({ updated_at: -1 })
       .skip(skip)
       .limit(limit)
@@ -30,6 +43,7 @@ async function listProjects(query) {
     items: items.map((item) => ({
       id: item._id.toString(),
       ...item,
+      image_1: getProjectCoverImage(item),
     })),
     pagination: {
       page,
@@ -41,7 +55,7 @@ async function listProjects(query) {
 }
 
 async function createProject(payload) {
-  const created = await Project.create(payload);
+  const created = await Project.create(normalizeProjectPayload(payload));
   return created._id.toString();
 }
 
@@ -54,7 +68,11 @@ async function getProjectById(id) {
 }
 
 async function updateProject(id, payload) {
-  const updated = await Project.findByIdAndUpdate(id, payload, { returnDocument: "after" }).lean();
+  const updated = await Project.findByIdAndUpdate(
+    id,
+    normalizeProjectPayload(payload),
+    { returnDocument: "after" }
+  ).lean();
   if (!updated) {
     return null;
   }
@@ -72,7 +90,7 @@ async function deleteProject(id) {
 
 async function getProjectDetailBySlug(slug) {
   const item = await Project.findOne({ slug })
-    .select("slug title short_description content banner_image banner_title banner_subtitle image_1 image_rows")
+    .select("slug title name location year short_description content banner_image banner_title banner_subtitle image_1 image_rows")
     .lean();
   if (!item) {
     return null;
@@ -82,7 +100,7 @@ async function getProjectDetailBySlug(slug) {
 
 async function getOtherProjects(slug, limit = 6) {
   const items = await Project.find({ slug: { $ne: slug } })
-    .select("slug title short_description image_1")
+    .select("slug title name short_description banner_image image_1")
     .sort({ updated_at: -1 })
     .limit(limit)
     .lean();
@@ -90,8 +108,10 @@ async function getOtherProjects(slug, limit = 6) {
   return items.map((item) => ({
     slug: item.slug,
     title: item.title,
+    name: item.name || "",
     short_description: item.short_description,
-    image_1: item.image_1,
+    image_1: getProjectCoverImage(item),
+    banner_image: getProjectCoverImage(item),
     project_url: projectToPublicPath(item.slug),
   }));
 }
