@@ -116,8 +116,49 @@ async function getOtherProjects(slug, limit = 6) {
   }));
 }
 
+async function listPublicProjects(query) {
+  const page = Number(query?.page || 1);
+  const limit = Number(query?.limit || 6);
+  const skip = (page - 1) * limit;
+
+  const [items, total] = await Promise.all([
+    Project.find({})
+      .select("slug title name location year short_description banner_image image_1 updated_at")
+      .sort({ updated_at: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Project.countDocuments({}),
+  ]);
+
+  return {
+    items: items.map((item) => {
+      const cover = getProjectCoverImage(item);
+      return {
+        slug: item.slug,
+        title: item.title,
+        name: item.name || "",
+        location: item.location || "",
+        year: item.year || "",
+        short_description: item.short_description || "",
+        banner_image: cover,
+        image_1: cover,
+        project_url: projectToPublicPath(item.slug),
+        updated_at: item.updated_at,
+      };
+    }),
+    pagination: {
+      page,
+      limit,
+      total,
+      total_pages: Math.max(1, Math.ceil(total / limit)),
+    },
+  };
+}
+
 module.exports = {
   listProjects,
+  listPublicProjects,
   createProject,
   getProjectById,
   updateProject,

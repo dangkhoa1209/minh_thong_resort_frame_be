@@ -2,15 +2,45 @@ require("dotenv").config();
 const { connectDatabase } = require("../src/config/database");
 const { Setting } = require("../src/modules/settings/setting.model");
 const { Project } = require("../src/modules/projects/project.model");
+const { ShowcaseItem } = require("../src/modules/showcase/showcase.model");
+
+const SHOWCASE_TYPES = {
+  home: "home_highlight",
+  slide: "hero_slide",
+};
+
+const HOME_HIGHLIGHT_SLUGS = [
+  "pear-hoi-an",
+  "four-seasons-resort-the-nam-hai",
+  "marriott-renaissance-hoi-an",
+];
+
+const HERO_SLIDE_SLUGS = [
+  "ana-mandara-villas-dalat",
+  "binh-an-village-dalat",
+  "four-seasons-resort-the-nam-hai",
+  "marriott-renaissance-hoi-an",
+  "mercure-hotel-vung-tau",
+  "pear-hoi-an",
+];
 
 const contactData = {
   company_name: "Abel Dang Production",
-  email: "contact@example.com",
-  phone: "+84 901 234 567",
-  address: "Hoi An, Quang Nam, Vietnam",
-  facebook: "https://facebook.com",
-  instagram: "https://instagram.com",
-  website: "https://example.com",
+  email: "abeldang@dangvuproduction.com",
+  phone: "0988 211 521",
+  address: "25 Nguyen Huu Tho, Tan Hung Ward, Ho Chi Minh City",
+  facebook: "https://www.facebook.com/abeldangphotographer",
+  instagram: "https://www.instagram.com/abeldang.photography",
+  website: "",
+};
+
+const logoData = {
+  logo_light_url: "/uploads/default/logo/logo-pro.svg",
+  logo_dark_url: "/uploads/default/logo/logo-pro-dark.svg",
+};
+
+const homeBannerData = {
+  banner_image: "",
 };
 
 function buildProject({
@@ -176,8 +206,22 @@ async function upsertSettings() {
     [
       {
         updateOne: {
+          filter: { key: "logo_active" },
+          update: { $set: { value: logoData } },
+          upsert: true,
+        },
+      },
+      {
+        updateOne: {
           filter: { key: "contact_info" },
           update: { $set: { value: contactData } },
+          upsert: true,
+        },
+      },
+      {
+        updateOne: {
+          filter: { key: "home_banner" },
+          update: { $set: { value: homeBannerData } },
           upsert: true,
         },
       },
@@ -206,6 +250,77 @@ async function upsertProjects(projectsData) {
   );
 }
 
+function buildShowcaseItems(type, slugs, projectBySlug) {
+  return slugs
+    .map((slug, index) => {
+      const project = projectBySlug.get(slug);
+      if (!project) return null;
+      return {
+        type,
+        project_id: project._id,
+        display_image: project.banner_image || project.image_1 || "",
+        sort_order: index + 1,
+        is_active: true,
+      };
+    })
+    .filter(Boolean);
+}
+
+async function upsertShowcaseItems() {
+  const allSlugs = [...new Set([...HOME_HIGHLIGHT_SLUGS, ...HERO_SLIDE_SLUGS])];
+  const projects = await Project.find({ slug: { $in: allSlugs } })
+    .select("_id slug banner_image image_1")
+    .lean();
+
+  const projectBySlug = new Map(projects.map((item) => [item.slug, item]));
+  const homeItems = buildShowcaseItems(SHOWCASE_TYPES.home, HOME_HIGHLIGHT_SLUGS, projectBySlug);
+  const slideItems = buildShowcaseItems(SHOWCASE_TYPES.slide, HERO_SLIDE_SLUGS, projectBySlug);
+  const showcaseItems = [...homeItems, ...slideItems];
+
+  const missingSlugs = allSlugs.filter((slug) => !projectBySlug.has(slug));
+  if (missingSlugs.length > 0) {
+    console.warn("Skipped missing showcase projects:", missingSlugs.join(", "));
+  }
+
+  if (showcaseItems.length > 0) {
+    await ShowcaseItem.bulkWrite(
+      showcaseItems.map((item) => ({
+        updateOne: {
+          filter: { type: item.type, project_id: item.project_id },
+          update: {
+            $set: {
+              display_image: item.display_image,
+              sort_order: item.sort_order,
+              is_active: item.is_active,
+            },
+          },
+          upsert: true,
+        },
+      })),
+      { ordered: false }
+    );
+  }
+
+  const homeProjectIds = homeItems.map((item) => item.project_id);
+  const slideProjectIds = slideItems.map((item) => item.project_id);
+
+  await ShowcaseItem.updateMany(
+    {
+      type: SHOWCASE_TYPES.home,
+      project_id: { $nin: homeProjectIds },
+    },
+    { $set: { is_active: false } }
+  );
+
+  await ShowcaseItem.updateMany(
+    {
+      type: SHOWCASE_TYPES.slide,
+      project_id: { $nin: slideProjectIds },
+    },
+    { $set: { is_active: false } }
+  );
+}
+
 async function run() {
   const mongoUri = process.env.MONGO_URI;
   if (!mongoUri) {
@@ -216,6 +331,7 @@ async function run() {
   const projectsData = buildProjectsData();
   await upsertSettings();
   await upsertProjects(projectsData);
+  await upsertShowcaseItems();
 
   console.log("Init project data completed");
   process.exit(0);

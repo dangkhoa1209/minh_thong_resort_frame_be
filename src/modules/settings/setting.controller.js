@@ -1,8 +1,14 @@
 const Joi = require("joi");
 const { getSettingValue, upsertSettingValue } = require("./setting.service");
 
+const logoFallback = {
+  logo_light_url: "/uploads/default/logo/logo-pro.svg",
+  logo_dark_url: "/uploads/default/logo/logo-pro-dark.svg",
+};
+
 const logoSchema = Joi.object({
-  logo_url: Joi.string().required(),
+  logo_light_url: Joi.string().allow("").default(""),
+  logo_dark_url: Joi.string().allow("").default(""),
 });
 
 const contactSchema = Joi.object({
@@ -15,10 +21,25 @@ const contactSchema = Joi.object({
   website: Joi.string().allow("").default(""),
 });
 
+const homeBannerFallback = {
+  banner_image: "",
+};
+
+const homeBannerSchema = Joi.object({
+  banner_image: Joi.string().allow("").default(""),
+});
+
 async function getLogoAdminController(_req, res, next) {
   try {
-    const value = await getSettingValue("logo_active", { logo_url: "" });
-    return res.json({ success: true, data: value, message: "OK" });
+    const value = await getSettingValue("logo_active", logoFallback);
+    return res.json({
+      success: true,
+      data: {
+        ...logoFallback,
+        ...value,
+      },
+      message: "OK",
+    });
   } catch (error) {
     return next(error);
   }
@@ -33,7 +54,11 @@ async function updateLogoAdminController(req, res, next) {
         error: { code: "VALIDATION_ERROR", message: error.details[0].message },
       });
     }
-    const updated = await upsertSettingValue("logo_active", value);
+    const normalized = {
+      logo_light_url: value.logo_light_url || logoFallback.logo_light_url,
+      logo_dark_url: value.logo_dark_url || logoFallback.logo_dark_url,
+    };
+    const updated = await upsertSettingValue("logo_active", normalized);
     return res.json({ success: true, data: updated, message: "Cap nhat logo thanh cong" });
   } catch (error) {
     return next(error);
@@ -67,8 +92,15 @@ async function updateContactAdminController(req, res, next) {
 
 async function getLogoPublicController(_req, res, next) {
   try {
-    const value = await getSettingValue("logo_active", { logo_url: "" });
-    return res.json({ success: true, data: value, message: "OK" });
+    const value = await getSettingValue("logo_active", logoFallback);
+    return res.json({
+      success: true,
+      data: {
+        ...logoFallback,
+        ...value,
+      },
+      message: "OK",
+    });
   } catch (error) {
     return next(error);
   }
@@ -83,6 +115,57 @@ async function getContactPublicController(_req, res, next) {
   }
 }
 
+async function getHomeBannerAdminController(_req, res, next) {
+  try {
+    const value = await getSettingValue("home_banner", homeBannerFallback);
+    return res.json({
+      success: true,
+      data: {
+        ...homeBannerFallback,
+        ...value,
+      },
+      message: "OK",
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function updateHomeBannerAdminController(req, res, next) {
+  try {
+    const { error, value } = homeBannerSchema.validate(req.body);
+    if (error) {
+      return res.status(422).json({
+        success: false,
+        error: { code: "VALIDATION_ERROR", message: error.details[0].message },
+      });
+    }
+    const normalized = {
+      banner_image: value.banner_image || "",
+    };
+    const updated = await upsertSettingValue("home_banner", normalized);
+    return res.json({ success: true, data: updated, message: "Cap nhat home banner thanh cong" });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function getHomeBannerPublicController(_req, res, next) {
+  try {
+    const value = await getSettingValue("home_banner", homeBannerFallback);
+    return res.json({
+      success: true,
+      data: {
+        ...homeBannerFallback,
+        ...value,
+      },
+      message: "OK",
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   getLogoAdminController,
   updateLogoAdminController,
@@ -90,4 +173,7 @@ module.exports = {
   updateContactAdminController,
   getLogoPublicController,
   getContactPublicController,
+  getHomeBannerAdminController,
+  updateHomeBannerAdminController,
+  getHomeBannerPublicController,
 };

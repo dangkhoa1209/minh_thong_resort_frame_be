@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const { getProjectDetailBySlug, getOtherProjects } = require("../projects/project.service");
+const { getProjectDetailBySlug, getOtherProjects, listPublicProjects } = require("../projects/project.service");
 const { getPublicHomeHighlights, getPublicHeroSlides } = require("../showcase/showcase.service");
 
 async function getHomeProjectsController(_req, res, next) {
@@ -14,6 +14,20 @@ async function getHomeProjectsController(_req, res, next) {
 async function getSlideProjectsController(_req, res, next) {
   try {
     const data = await getPublicHeroSlides();
+    return res.json({ success: true, data, message: "OK" });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function getPublicProjectsController(req, res, next) {
+  try {
+    const { value } = Joi.object({
+      page: Joi.number().integer().min(1).default(1),
+      limit: Joi.number().integer().min(1).max(50).default(6),
+    }).validate(req.query, { stripUnknown: true });
+
+    const data = await listPublicProjects(value);
     return res.json({ success: true, data, message: "OK" });
   } catch (error) {
     return next(error);
@@ -51,6 +65,7 @@ async function getOtherProjectsController(req, res, next) {
 module.exports = {
   getHomeProjectsController,
   getSlideProjectsController,
+  getPublicProjectsController,
   getProjectBySlugController,
   getOtherProjectsController,
 };
