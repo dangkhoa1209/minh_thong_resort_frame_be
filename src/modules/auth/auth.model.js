@@ -10,7 +10,7 @@ const adminUserSchema = new mongoose.Schema(
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );
 
-adminUserSchema.index({ email: 1 }, { unique: true });
+// adminUserSchema.index({ email: 1 }, { unique: true });
 
 const AdminUser = mongoose.model("AdminUser", adminUserSchema);
 

@@ -1,14 +1,10 @@
 const Joi = require("joi");
-const {
-  getHomeProjects,
-  getSlideProjects,
-  getProjectDetailBySlug,
-  getOtherProjects,
-} = require("../projects/project.service");
+const { getProjectDetailBySlug, getOtherProjects } = require("../projects/project.service");
+const { getPublicHomeHighlights, getPublicHeroSlides } = require("../showcase/showcase.service");
 
 async function getHomeProjectsController(_req, res, next) {
   try {
-    const data = await getHomeProjects();
+    const data = await getPublicHomeHighlights();
     return res.json({ success: true, data, message: "OK" });
   } catch (error) {
     return next(error);
@@ -17,7 +13,7 @@ async function getHomeProjectsController(_req, res, next) {
 
 async function getSlideProjectsController(_req, res, next) {
   try {
-    const data = await getSlideProjects();
+    const data = await getPublicHeroSlides();
     return res.json({ success: true, data, message: "OK" });
   } catch (error) {
     return next(error);

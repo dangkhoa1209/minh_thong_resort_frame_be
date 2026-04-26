@@ -27,25 +27,15 @@ const projectPayloadSchema = Joi.object({
   banner_subtitle: Joi.string().max(200).allow("").optional(),
   image_1: Joi.string().required(),
   image_rows: Joi.array().items(imageRowSchema).max(20).default([]),
-  is_home_visible: Joi.boolean().default(false),
-  is_slide_visible: Joi.boolean().default(false),
-});
-
-const projectDisplaySchema = Joi.object({
-  is_home_visible: Joi.boolean().required(),
-  is_slide_visible: Joi.boolean().required(),
 });
 
 const projectQuerySchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(20),
   search: Joi.string().allow("").default(""),
-  is_home_visible: Joi.boolean().optional(),
-  is_slide_visible: Joi.boolean().optional(),
 });
 
 module.exports = {
   projectPayloadSchema,
-  projectDisplaySchema,
   projectQuerySchema,
 };

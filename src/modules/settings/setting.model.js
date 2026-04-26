@@ -8,7 +8,7 @@ const settingSchema = new mongoose.Schema(
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );
 
-settingSchema.index({ key: 1 }, { unique: true });
+// settingSchema.index({ key: 1 }, { unique: true });
 
 const Setting = mongoose.model("Setting", settingSchema);
 

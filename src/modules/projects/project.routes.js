@@ -3,7 +3,6 @@ const { requireAuth } = require("../../middleware/auth.middleware");
 const { validate } = require("../../middleware/validate.middleware");
 const {
   projectPayloadSchema,
-  projectDisplaySchema,
   projectQuerySchema,
 } = require("./project.validation");
 const {
@@ -11,7 +10,7 @@ const {
   createProjectController,
   getProjectDetailController,
   updateProjectController,
-  updateProjectDisplayController,
+  deleteProjectController,
 } = require("./project.controller");
 
 const router = express.Router();
@@ -21,6 +20,6 @@ router.get("/", validate(projectQuerySchema, "query"), listProjectsController);
 router.post("/", validate(projectPayloadSchema), createProjectController);
 router.get("/:id", getProjectDetailController);
 router.put("/:id", validate(projectPayloadSchema), updateProjectController);
-router.patch("/:id/display", validate(projectDisplaySchema), updateProjectDisplayController);
+router.delete("/:id", deleteProjectController);
 
 module.exports = router;

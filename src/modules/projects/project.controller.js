@@ -3,7 +3,7 @@ const {
   createProject,
   getProjectById,
   updateProject,
-  updateProjectDisplay,
+  deleteProject,
 } = require("./project.service");
 
 async function listProjectsController(req, res, next) {
@@ -74,9 +74,9 @@ async function updateProjectController(req, res, next) {
   }
 }
 
-async function updateProjectDisplayController(req, res, next) {
+async function deleteProjectController(req, res, next) {
   try {
-    const item = await updateProjectDisplay(req.params.id, req.body);
+    const item = await deleteProject(req.params.id);
     if (!item) {
       return res.status(404).json({
         success: false,
@@ -86,7 +86,7 @@ async function updateProjectDisplayController(req, res, next) {
     return res.json({
       success: true,
       data: item,
-      message: "Cap nhat display thanh cong",
+      message: "Xoa project thanh cong",
     });
   } catch (error) {
     return next(error);
@@ -98,5 +98,5 @@ module.exports = {
   createProjectController,
   getProjectDetailController,
   updateProjectController,
-  updateProjectDisplayController,
+  deleteProjectController,
 };

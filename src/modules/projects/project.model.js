@@ -35,7 +35,7 @@ const projectSchema = new mongoose.Schema(
   { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );
 
-projectSchema.index({ slug: 1 }, { unique: true });
+// projectSchema.index({ slug: 1 }, { unique: true });
 projectSchema.index({ is_home_visible: 1, updated_at: -1 });
 projectSchema.index({ is_slide_visible: 1, updated_at: -1 });
 

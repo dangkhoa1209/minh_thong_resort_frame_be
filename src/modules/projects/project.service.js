@@ -5,15 +5,8 @@ function projectToPublicPath(slug) {
 }
 
 async function listProjects(query) {
-  const { page, limit, search, is_home_visible, is_slide_visible } = query;
+  const { page, limit, search } = query;
   const filter = {};
-
-  if (typeof is_home_visible === "boolean") {
-    filter.is_home_visible = is_home_visible;
-  }
-  if (typeof is_slide_visible === "boolean") {
-    filter.is_slide_visible = is_slide_visible;
-  }
   if (search) {
     filter.$or = [
       { title: { $regex: search, $options: "i" } },
@@ -25,7 +18,7 @@ async function listProjects(query) {
 
   const [items, total] = await Promise.all([
     Project.find(filter)
-      .select("slug title short_description image_1 is_home_visible is_slide_visible updated_at")
+      .select("slug title short_description image_1 updated_at")
       .sort({ updated_at: -1 })
       .skip(skip)
       .limit(limit)
@@ -61,59 +54,21 @@ async function getProjectById(id) {
 }
 
 async function updateProject(id, payload) {
-  const updated = await Project.findByIdAndUpdate(id, payload, { new: true }).lean();
+  const updated = await Project.findByIdAndUpdate(id, payload, { returnDocument: "after" }).lean();
   if (!updated) {
     return null;
   }
   return { id: updated._id.toString(), ...updated };
 }
 
-async function updateProjectDisplay(id, payload) {
-  const updated = await Project.findByIdAndUpdate(
-    id,
-    { is_home_visible: payload.is_home_visible, is_slide_visible: payload.is_slide_visible },
-    { new: true }
-  ).lean();
-  if (!updated) {
+async function deleteProject(id) {
+  const deleted = await Project.findByIdAndDelete(id).lean();
+  if (!deleted) {
     return null;
   }
-  return {
-    id: updated._id.toString(),
-    is_home_visible: updated.is_home_visible,
-    is_slide_visible: updated.is_slide_visible,
-  };
+  return { id: deleted._id.toString() };
 }
 
-async function getHomeProjects() {
-  const items = await Project.find({ is_home_visible: true })
-    .select("slug title short_description image_1")
-    .sort({ updated_at: -1 })
-    .limit(100)
-    .lean();
-
-  return items.map((item) => ({
-    slug: item.slug,
-    title: item.title,
-    short_description: item.short_description,
-    image_1: item.image_1,
-    project_url: projectToPublicPath(item.slug),
-  }));
-}
-
-async function getSlideProjects() {
-  const items = await Project.find({ is_slide_visible: true })
-    .select("slug title image_1")
-    .sort({ updated_at: -1 })
-    .limit(100)
-    .lean();
-
-  return items.map((item) => ({
-    slug: item.slug,
-    title: item.title,
-    image_1: item.image_1,
-    project_url: projectToPublicPath(item.slug),
-  }));
-}
 
 async function getProjectDetailBySlug(slug) {
   const item = await Project.findOne({ slug })
@@ -146,9 +101,7 @@ module.exports = {
   createProject,
   getProjectById,
   updateProject,
-  updateProjectDisplay,
-  getHomeProjects,
-  getSlideProjects,
+  deleteProject,
   getProjectDetailBySlug,
   getOtherProjects,
 };
