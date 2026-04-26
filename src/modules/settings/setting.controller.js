@@ -29,6 +29,20 @@ const homeBannerSchema = Joi.object({
   banner_image: Joi.string().allow("").default(""),
 });
 
+const homePartnersFallback = {
+  logos: [
+    "/uploads/default/partners/asset-2.svg",
+    "/uploads/default/partners/asset-3.svg",
+    "/uploads/default/partners/asset-4.svg",
+    "/uploads/default/partners/asset-5.svg",
+    "/uploads/default/partners/asset-6.svg",
+  ],
+};
+
+const homePartnersSchema = Joi.object({
+  logos: Joi.array().items(Joi.string().allow("")).default([]),
+});
+
 async function getLogoAdminController(_req, res, next) {
   try {
     const value = await getSettingValue("logo_active", logoFallback);
@@ -166,6 +180,57 @@ async function getHomeBannerPublicController(_req, res, next) {
   }
 }
 
+async function getHomePartnersAdminController(_req, res, next) {
+  try {
+    const value = await getSettingValue("home_partners", homePartnersFallback);
+    return res.json({
+      success: true,
+      data: {
+        ...homePartnersFallback,
+        ...value,
+      },
+      message: "OK",
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function updateHomePartnersAdminController(req, res, next) {
+  try {
+    const { error, value } = homePartnersSchema.validate(req.body);
+    if (error) {
+      return res.status(422).json({
+        success: false,
+        error: { code: "VALIDATION_ERROR", message: error.details[0].message },
+      });
+    }
+    const normalized = {
+      logos: (value.logos || []).filter((item) => String(item || "").trim() !== ""),
+    };
+    const updated = await upsertSettingValue("home_partners", normalized);
+    return res.json({ success: true, data: updated, message: "Cap nhat partner logos thanh cong" });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function getHomePartnersPublicController(_req, res, next) {
+  try {
+    const value = await getSettingValue("home_partners", homePartnersFallback);
+    return res.json({
+      success: true,
+      data: {
+        ...homePartnersFallback,
+        ...value,
+      },
+      message: "OK",
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   getLogoAdminController,
   updateLogoAdminController,
@@ -176,4 +241,7 @@ module.exports = {
   getHomeBannerAdminController,
   updateHomeBannerAdminController,
   getHomeBannerPublicController,
+  getHomePartnersAdminController,
+  updateHomePartnersAdminController,
+  getHomePartnersPublicController,
 };

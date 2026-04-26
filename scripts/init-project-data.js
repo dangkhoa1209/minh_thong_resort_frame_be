@@ -43,6 +43,16 @@ const homeBannerData = {
   banner_image: "",
 };
 
+const homePartnersData = {
+  logos: [
+    "/uploads/default/partners/asset-2.svg",
+    "/uploads/default/partners/asset-3.svg",
+    "/uploads/default/partners/asset-4.svg",
+    "/uploads/default/partners/asset-5.svg",
+    "/uploads/default/partners/asset-6.svg",
+  ],
+};
+
 function buildProject({
   slug,
   title,
@@ -222,6 +232,13 @@ async function upsertSettings() {
         updateOne: {
           filter: { key: "home_banner" },
           update: { $set: { value: homeBannerData } },
+          upsert: true,
+        },
+      },
+      {
+        updateOne: {
+          filter: { key: "home_partners" },
+          update: { $set: { value: homePartnersData } },
           upsert: true,
         },
       },

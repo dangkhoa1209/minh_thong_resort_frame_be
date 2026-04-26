@@ -10,6 +10,9 @@ const {
   getHomeBannerAdminController,
   updateHomeBannerAdminController,
   getHomeBannerPublicController,
+  getHomePartnersAdminController,
+  updateHomePartnersAdminController,
+  getHomePartnersPublicController,
 } = require("./setting.controller");
 
 const adminRouter = express.Router();
@@ -22,9 +25,12 @@ adminRouter.get("/contact", getContactAdminController);
 adminRouter.put("/contact", updateContactAdminController);
 adminRouter.get("/home-banner", getHomeBannerAdminController);
 adminRouter.put("/home-banner", updateHomeBannerAdminController);
+adminRouter.get("/home-partners", getHomePartnersAdminController);
+adminRouter.put("/home-partners", updateHomePartnersAdminController);
 
 publicRouter.get("/logo", getLogoPublicController);
 publicRouter.get("/contact", getContactPublicController);
 publicRouter.get("/home-banner", getHomeBannerPublicController);
+publicRouter.get("/home-partners", getHomePartnersPublicController);
 
 module.exports = { adminSettingRouter: adminRouter, publicSettingRouter: publicRouter };
