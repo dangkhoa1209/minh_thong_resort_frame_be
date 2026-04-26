@@ -17,7 +17,7 @@ async function fetchProjectsMap(projectIds) {
   }
 
   const projects = await Project.find({ _id: { $in: projectIds } })
-    .select("slug title short_description")
+    .select("slug title short_description image_1")
     .lean();
 
   return new Map(projects.map((item) => [item._id.toString(), item]));
@@ -72,7 +72,7 @@ async function listShowcaseItems(type, query) {
           project_id: item.project_id.toString(),
           project_slug: project.slug,
           project_title: project.title,
-          display_image: item.display_image,
+          display_image: project.image_1 || item.display_image || "",
           sort_order: item.sort_order,
           is_active: item.is_active,
           updated_at: item.updated_at,
@@ -88,21 +88,22 @@ async function listShowcaseItems(type, query) {
   };
 }
 
-async function ensureProjectExists(projectId) {
-  const exists = await Project.exists({ _id: projectId });
-  if (!exists) {
+async function getExistingProject(projectId) {
+  const project = await Project.findById(projectId).select("image_1").lean();
+  if (!project) {
     const error = new Error("Project not found");
     error.code = "PROJECT_NOT_FOUND";
     throw error;
   }
+  return project;
 }
 
 async function createShowcaseItem(type, payload) {
-  await ensureProjectExists(payload.project_id);
+  await getExistingProject(payload.project_id);
   const created = await ShowcaseItem.create({
     type,
     project_id: new mongoose.Types.ObjectId(payload.project_id),
-    display_image: payload.display_image,
+    display_image: payload.display_image || "",
     sort_order: payload.sort_order,
     is_active: payload.is_active,
   });
@@ -113,7 +114,7 @@ async function getShowcaseItemById(type, id) {
   const item = await ShowcaseItem.findOne({ _id: id, type }).lean();
   if (!item) return null;
 
-  const project = await Project.findById(item.project_id).select("slug title").lean();
+  const project = await Project.findById(item.project_id).select("slug title image_1").lean();
   if (!project) return null;
 
   return {
@@ -121,7 +122,7 @@ async function getShowcaseItemById(type, id) {
     project_id: item.project_id.toString(),
     project_slug: project.slug,
     project_title: project.title,
-    display_image: item.display_image,
+    display_image: project.image_1 || item.display_image || "",
     sort_order: item.sort_order,
     is_active: item.is_active,
     updated_at: item.updated_at,
@@ -129,12 +130,12 @@ async function getShowcaseItemById(type, id) {
 }
 
 async function updateShowcaseItem(type, id, payload) {
-  await ensureProjectExists(payload.project_id);
+  await getExistingProject(payload.project_id);
   const updated = await ShowcaseItem.findOneAndUpdate(
     { _id: id, type },
     {
       project_id: new mongoose.Types.ObjectId(payload.project_id),
-      display_image: payload.display_image,
+      display_image: payload.display_image || "",
       sort_order: payload.sort_order,
       is_active: payload.is_active,
     },
@@ -168,7 +169,7 @@ async function getPublicHomeHighlights() {
         slug: project.slug,
         title: project.title,
         short_description: project.short_description || "",
-        image_1: item.display_image,
+        image_1: project.image_1 || item.display_image || "",
         project_url: projectToPublicPath(project.slug),
       };
     })
@@ -191,7 +192,7 @@ async function getPublicHeroSlides() {
       return {
         slug: project.slug,
         title: project.title,
-        image_1: item.display_image,
+        image_1: project.image_1 || item.display_image || "",
         project_url: projectToPublicPath(project.slug),
       };
     })

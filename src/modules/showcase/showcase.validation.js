@@ -2,7 +2,7 @@ const Joi = require("joi");
 
 const showcasePayloadSchema = Joi.object({
   project_id: Joi.string().length(24).hex().required(),
-  display_image: Joi.string().required(),
+  display_image: Joi.string().allow("").optional(),
   sort_order: Joi.number().integer().min(0).default(0),
   is_active: Joi.boolean().default(true),
 });

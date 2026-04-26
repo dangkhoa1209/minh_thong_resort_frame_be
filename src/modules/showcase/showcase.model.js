@@ -14,8 +14,8 @@ const showcaseItemSchema = new mongoose.Schema(
     },
     display_image: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
     },
     sort_order: {
       type: Number,
