@@ -36,7 +36,7 @@ async function listProjects(query) {
   const [items, total] = await Promise.all([
     Project.find(filter)
       .select("slug title name location year short_description banner_image image_1 is_active updated_at")
-      .sort({ updated_at: -1 })
+      .sort({ _id: -1 })
       .skip(skip)
       .limit(limit)
       .lean(),
@@ -146,7 +146,7 @@ async function listPublicProjects(query) {
   const [items, total] = await Promise.all([
     Project.find({ is_active: { $ne: false } })
       .select("slug title name location year short_description banner_image image_1 updated_at is_active")
-      .sort({ updated_at: -1 })
+      .sort({ _id: -1 })
       .skip(skip)
       .limit(limit)
       .lean(),
