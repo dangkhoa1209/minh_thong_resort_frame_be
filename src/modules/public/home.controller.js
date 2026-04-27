@@ -4,10 +4,50 @@ const path = require("path");
 const { getProjectDetailBySlug, getOtherProjects, listPublicProjects } = require("../projects/project.service");
 const { getPublicHomeHighlights, getPublicHeroSlides } = require("../showcase/showcase.service");
 
-const projectDetailHtmlPath = path.join(
-  process.env.PUBLIC_SITE_ROOT || path.resolve(__dirname, "../../../../minh_thong_resort_frame"),
-  "pages/project/project-detail.html"
-);
+function getProjectDetailHtmlCandidates() {
+  return [
+    process.env.PUBLIC_SITE_ROOT,
+    "/var/www/abledang",
+    path.resolve(process.cwd(), "../abledang"),
+    path.resolve(__dirname, "../../../../minh_thong_resort_frame"),
+  ]
+    .filter(Boolean)
+    .map((root) => path.join(root, "pages/project/project-detail.html"));
+}
+
+async function readProjectDetailHtml() {
+  const candidates = getProjectDetailHtmlCandidates();
+  let lastError = null;
+
+  for (const filePath of candidates) {
+    try {
+      return await fs.readFile(filePath, "utf8");
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError;
+}
+
+function buildFallbackProjectHtml(data, req) {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Detail | Abel Dang Production</title>
+</head>
+<body>
+  <main>
+    <h1>${escapeHtml([data?.title, data?.name].filter(Boolean).join(" | ") || "Project Detail")}</h1>
+    <p>${escapeHtml(stripHtml(data?.short_description || data?.content || ""))}</p>
+  </main>
+</body>
+</html>`;
+
+  return data ? injectProjectMeta(html, data, req) : html;
+}
 
 function escapeHtml(value) {
   return String(value || "")
@@ -158,7 +198,13 @@ async function renderProjectDetailPageController(req, res, next) {
       return res.status(404).send("Project not found");
     }
 
-    const html = await fs.readFile(projectDetailHtmlPath, "utf8");
+    let html = "";
+    try {
+      html = await readProjectDetailHtml();
+    } catch (_error) {
+      html = buildFallbackProjectHtml(data, req);
+    }
+
     return res
       .type("html")
       .set("Cache-Control", "public, max-age=300")
