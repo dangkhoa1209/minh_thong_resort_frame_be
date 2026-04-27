@@ -21,7 +21,7 @@ async function fetchProjectsMap(projectIds) {
   }
 
   const projects = await Project.find({ _id: { $in: projectIds } })
-    .select("slug title name short_description banner_image image_1")
+    .select("slug title name short_description banner_image image_1 is_active")
     .lean();
 
   return new Map(projects.map((item) => [item._id.toString(), item]));
@@ -174,7 +174,7 @@ async function getPublicHomeHighlights() {
   return items
     .map((item) => {
       const project = projectsMap.get(item.project_id.toString());
-      if (!project) return null;
+        if (!project || project.is_active === false) return null;
       return {
         slug: project.slug,
         title: project.title,
@@ -199,7 +199,7 @@ async function getPublicHeroSlides() {
   return items
     .map((item) => {
       const project = projectsMap.get(item.project_id.toString());
-      if (!project) return null;
+        if (!project || project.is_active === false) return null;
       return {
         slug: project.slug,
         title: project.title,

@@ -32,6 +32,7 @@ const projectSchema = new mongoose.Schema(
     banner_subtitle: { type: String, default: "", trim: true },
     image_1: { type: String, required: true },
     image_rows: { type: [imageRowSchema], default: [] },
+    is_active: { type: Boolean, default: true },
     is_home_visible: { type: Boolean, default: false },
     is_slide_visible: { type: Boolean, default: false },
   },
@@ -41,6 +42,7 @@ const projectSchema = new mongoose.Schema(
 // projectSchema.index({ slug: 1 }, { unique: true });
 projectSchema.index({ is_home_visible: 1, updated_at: -1 });
 projectSchema.index({ is_slide_visible: 1, updated_at: -1 });
+projectSchema.index({ is_active: 1, updated_at: -1 });
 
 const Project = mongoose.model("Project", projectSchema);
 

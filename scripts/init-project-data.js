@@ -62,6 +62,7 @@ function buildProject({
   content,
   bannerImage,
   imageRows,
+  isActive = true,
   isHomeVisible,
   isSlideVisible,
 }) {
@@ -78,6 +79,7 @@ function buildProject({
     banner_subtitle: name,
     image_1: bannerImage,
     image_rows: imageRows,
+    is_active: isActive,
     is_home_visible: isHomeVisible,
     is_slide_visible: isSlideVisible,
   };
@@ -107,6 +109,7 @@ function buildProjectsData() {
         row(2, "4:3", "/uploads/default/ana-mandara/3.webp", "/uploads/default/ana-mandara/1.webp"),
       ],
       isHomeVisible: true,
+      isActive: true,
       isSlideVisible: true,
     }),
     buildProject({
@@ -123,6 +126,7 @@ function buildProjectsData() {
         row(2, "3:4", "/uploads/default/binh-an/4.webp", "/uploads/default/binh-an/5.webp"),
       ],
       isHomeVisible: true,
+      isActive: true,
       isSlideVisible: true,
     }),
     buildProject({
@@ -145,6 +149,7 @@ function buildProjectsData() {
         row(2, "4:3", "/uploads/default/four-seasons-resort-the-nam-hai/13.webp", "/uploads/default/four-seasons-resort-the-nam-hai/14.webp"),
       ],
       isHomeVisible: true,
+      isActive: true,
       isSlideVisible: true,
     }),
     buildProject({
@@ -166,6 +171,7 @@ function buildProjectsData() {
         row(2, "4:3", "/uploads/default/marriott-renaissance-hoi-an/13.jpg", "/uploads/default/marriott-renaissance-hoi-an/14.jpg"),
       ],
       isHomeVisible: true,
+      isActive: true,
       isSlideVisible: true,
     }),
     buildProject({
@@ -190,6 +196,7 @@ function buildProjectsData() {
         row(2, "4:3", "/uploads/default/pear-hoi-an/19.jpg", "/uploads/default/pear-hoi-an/20.jpg"),
       ],
       isHomeVisible: true,
+      isActive: true,
       isSlideVisible: true,
     }),
     buildProject({
@@ -206,6 +213,7 @@ function buildProjectsData() {
         row(1, "16:9", "/uploads/default/mercure-hotel/4.webp"),
       ],
       isHomeVisible: true,
+      isActive: true,
       isSlideVisible: true,
     }),
   ];
@@ -263,7 +271,7 @@ async function upsertProjects(projectsData) {
 
   await Project.updateMany(
     { slug: { $nin: allowedSlugs } },
-    { $set: { is_home_visible: false, is_slide_visible: false } }
+    { $set: { is_active: false, is_home_visible: false, is_slide_visible: false } }
   );
 }
 

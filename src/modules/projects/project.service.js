@@ -12,6 +12,7 @@ function normalizeProjectPayload(payload = {}) {
   return {
     ...payload,
     image_1: payload.banner_image || payload.image_1 || "",
+    is_active: payload.is_active !== false,
   };
 }
 
@@ -31,7 +32,7 @@ async function listProjects(query) {
 
   const [items, total] = await Promise.all([
     Project.find(filter)
-      .select("slug title name location year short_description banner_image image_1 updated_at")
+      .select("slug title name location year short_description banner_image image_1 is_active updated_at")
       .sort({ updated_at: -1 })
       .skip(skip)
       .limit(limit)
@@ -43,6 +44,7 @@ async function listProjects(query) {
     items: items.map((item) => ({
       id: item._id.toString(),
       ...item,
+      is_active: item.is_active !== false,
       image_1: getProjectCoverImage(item),
     })),
     pagination: {
@@ -90,17 +92,17 @@ async function deleteProject(id) {
 
 async function getProjectDetailBySlug(slug) {
   const item = await Project.findOne({ slug })
-    .select("slug title name location year short_description content banner_image banner_title banner_subtitle image_1 image_rows")
+    .select("slug title name location year short_description content banner_image banner_title banner_subtitle image_1 image_rows is_active")
     .lean();
-  if (!item) {
+  if (!item || item.is_active === false) {
     return null;
   }
   return item;
 }
 
 async function getOtherProjects(slug, limit = 6) {
-  const items = await Project.find({ slug: { $ne: slug } })
-    .select("slug title name short_description banner_image image_1")
+  const items = await Project.find({ slug: { $ne: slug }, is_active: { $ne: false } })
+    .select("slug title name short_description banner_image image_1 is_active")
     .sort({ updated_at: -1 })
     .limit(limit)
     .lean();
@@ -122,13 +124,13 @@ async function listPublicProjects(query) {
   const skip = (page - 1) * limit;
 
   const [items, total] = await Promise.all([
-    Project.find({})
-      .select("slug title name location year short_description banner_image image_1 updated_at")
+    Project.find({ is_active: { $ne: false } })
+      .select("slug title name location year short_description banner_image image_1 updated_at is_active")
       .sort({ updated_at: -1 })
       .skip(skip)
       .limit(limit)
       .lean(),
-    Project.countDocuments({}),
+    Project.countDocuments({ is_active: { $ne: false } }),
   ]);
 
   return {

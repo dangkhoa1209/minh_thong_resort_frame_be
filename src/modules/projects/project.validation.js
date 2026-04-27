@@ -30,6 +30,7 @@ const projectPayloadSchema = Joi.object({
   banner_subtitle: Joi.string().max(200).allow("").optional(),
   image_1: Joi.string().allow("").optional(),
   image_rows: Joi.array().items(imageRowSchema).max(20).default([]),
+  is_active: Joi.boolean().default(true),
 });
 
 const projectQuerySchema = Joi.object({

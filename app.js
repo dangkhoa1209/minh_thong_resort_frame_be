@@ -14,7 +14,6 @@ const homeHighlightRoutes = require("./src/modules/showcase/home-highlight.route
 const heroSlideRoutes = require("./src/modules/showcase/hero-slide.routes");
 const contactSubmissionRoutes = require("./src/modules/contacts/contact-submission.routes");
 const dashboardRoutes = require("./src/modules/dashboard/dashboard.routes");
-const analyticsRoutes = require("./src/modules/analytics/analytics.routes");
 const mediaRoutes = require('./src/modules/media/media.routes');
 const publicHomeRoutes = require('./src/modules/public/home.routes');
 const { adminSettingRouter, publicSettingRouter } = require('./src/modules/settings/setting.routes');
@@ -46,7 +45,6 @@ app.use('/api/admin/settings', adminSettingRouter);
 app.use('/api/admin/media', mediaRoutes);
 app.use('/api/public', publicHomeRoutes);
 app.use('/api/public/settings', publicSettingRouter);
-app.use("/api/public/analytics", analyticsRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

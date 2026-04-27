@@ -1,16 +1,15 @@
 const { Project } = require("../projects/project.model");
 const { ShowcaseItem } = require("../showcase/showcase.model");
 const { getContactSubmissionStats } = require("../contacts/contact-submission.service");
-const { getProjectViewStats } = require("../analytics/analytics.service");
 
 async function getDashboardSummaryController(_req, res, next) {
   try {
-    const [projectTotal, homeActive, slideActive, contactStats, projectViewStats, recentProjects] = await Promise.all([
+    const [projectTotal, projectActive, homeActive, slideActive, contactStats, recentProjects] = await Promise.all([
       Project.countDocuments({}),
+      Project.countDocuments({ is_active: { $ne: false } }),
       ShowcaseItem.countDocuments({ type: "home_highlight", is_active: true }),
       ShowcaseItem.countDocuments({ type: "hero_slide", is_active: true }),
       getContactSubmissionStats(),
-      getProjectViewStats(5),
       Project.find({})
         .select("title name banner_image image_1 updated_at")
         .sort({ updated_at: -1 })
@@ -23,6 +22,7 @@ async function getDashboardSummaryController(_req, res, next) {
       data: {
         projects: {
           total: projectTotal,
+          active: projectActive,
           recent_items: recentProjects.map((item) => ({
             id: item._id.toString(),
             ...item,
@@ -34,7 +34,6 @@ async function getDashboardSummaryController(_req, res, next) {
           hero_slides_active: slideActive,
         },
         contacts: contactStats,
-        analytics: projectViewStats,
       },
       message: "OK",
     });
