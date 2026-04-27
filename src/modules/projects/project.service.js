@@ -9,11 +9,14 @@ function getProjectCoverImage(item = {}) {
 }
 
 function normalizeProjectPayload(payload = {}) {
-  return {
+  const normalized = {
     ...payload,
     image_1: payload.banner_image || payload.image_1 || "",
-    is_active: payload.is_active !== false,
   };
+  if (Object.prototype.hasOwnProperty.call(payload, "is_active")) {
+    normalized.is_active = payload.is_active !== false;
+  }
+  return normalized;
 }
 
 async function listProjects(query) {
@@ -79,6 +82,23 @@ async function updateProject(id, payload) {
     return null;
   }
   return { id: updated._id.toString(), ...updated };
+}
+
+async function updateProjectActive(id, isActive) {
+  const updated = await Project.findByIdAndUpdate(
+    id,
+    { is_active: isActive !== false },
+    { returnDocument: "after" }
+  )
+    .select("is_active")
+    .lean();
+  if (!updated) {
+    return null;
+  }
+  return {
+    id: updated._id.toString(),
+    is_active: updated.is_active !== false,
+  };
 }
 
 async function deleteProject(id) {
@@ -164,6 +184,7 @@ module.exports = {
   createProject,
   getProjectById,
   updateProject,
+  updateProjectActive,
   deleteProject,
   getProjectDetailBySlug,
   getOtherProjects,

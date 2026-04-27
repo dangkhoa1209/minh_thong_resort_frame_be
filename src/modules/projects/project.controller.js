@@ -3,6 +3,7 @@ const {
   createProject,
   getProjectById,
   updateProject,
+  updateProjectActive,
   deleteProject,
 } = require("./project.service");
 
@@ -74,6 +75,25 @@ async function updateProjectController(req, res, next) {
   }
 }
 
+async function updateProjectActiveController(req, res, next) {
+  try {
+    const item = await updateProjectActive(req.params.id, req.body.is_active);
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        error: { code: "NOT_FOUND", message: "Project not found" },
+      });
+    }
+    return res.json({
+      success: true,
+      data: item,
+      message: "Cap nhat project active thanh cong",
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 async function deleteProjectController(req, res, next) {
   try {
     const item = await deleteProject(req.params.id);
@@ -98,5 +118,6 @@ module.exports = {
   createProjectController,
   getProjectDetailController,
   updateProjectController,
+  updateProjectActiveController,
   deleteProjectController,
 };

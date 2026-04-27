@@ -256,22 +256,21 @@ async function upsertSettings() {
 }
 
 async function upsertProjects(projectsData) {
-  const allowedSlugs = projectsData.map((item) => item.slug);
-
   await Project.bulkWrite(
-    projectsData.map((payload) => ({
-      updateOne: {
-        filter: { slug: payload.slug },
-        update: { $set: payload },
-        upsert: true,
-      },
-    })),
+    projectsData.map((payload) => {
+      const { is_active: isActive, ...projectPayload } = payload;
+      return {
+        updateOne: {
+          filter: { slug: payload.slug },
+          update: {
+            $set: projectPayload,
+            $setOnInsert: { is_active: isActive !== false },
+          },
+          upsert: true,
+        },
+      };
+    }),
     { ordered: false }
-  );
-
-  await Project.updateMany(
-    { slug: { $nin: allowedSlugs } },
-    { $set: { is_active: false, is_home_visible: false, is_slide_visible: false } }
   );
 }
 
@@ -285,7 +284,7 @@ function buildShowcaseItems(type, slugs, projectBySlug) {
         project_id: project._id,
         display_image: project.banner_image || project.image_1 || "",
         sort_order: index + 1,
-        is_active: true,
+        default_active: true,
       };
     })
     .filter(Boolean);
@@ -316,8 +315,8 @@ async function upsertShowcaseItems() {
             $set: {
               display_image: item.display_image,
               sort_order: item.sort_order,
-              is_active: item.is_active,
             },
+            $setOnInsert: { is_active: item.default_active },
           },
           upsert: true,
         },
@@ -326,24 +325,6 @@ async function upsertShowcaseItems() {
     );
   }
 
-  const homeProjectIds = homeItems.map((item) => item.project_id);
-  const slideProjectIds = slideItems.map((item) => item.project_id);
-
-  await ShowcaseItem.updateMany(
-    {
-      type: SHOWCASE_TYPES.home,
-      project_id: { $nin: homeProjectIds },
-    },
-    { $set: { is_active: false } }
-  );
-
-  await ShowcaseItem.updateMany(
-    {
-      type: SHOWCASE_TYPES.slide,
-      project_id: { $nin: slideProjectIds },
-    },
-    { $set: { is_active: false } }
-  );
 }
 
 async function run() {
