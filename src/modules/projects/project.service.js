@@ -1,7 +1,28 @@
 const { Project } = require("./project.model");
 
+const PROJECT_STATIC_SLUG_ALIASES = {
+  "resort-spa-ana-mandara-villas": "ana-mandara-villas-dalat",
+  "resort-binh-an-village": "binh-an-village-dalat",
+  "resort-spa-renaissance": "marriott-renaissance-hoi-an",
+  "hotel-mercure-vung-tau": "mercure-hotel-vung-tau",
+  "resort-citadines-pearl-hoi-an": "pear-hoi-an",
+};
+
+const CUSTOM_PROJECT_SLUGS = new Set([
+  "ana-mandara-villas-dalat",
+  "binh-an-village-dalat",
+  "four-seasons-resort-the-nam-hai",
+  "marriott-renaissance-hoi-an",
+  "mercure-hotel-vung-tau",
+  "pear-hoi-an",
+]);
+
 function projectToPublicPath(slug) {
-  return `/pages/project/${slug}.html`;
+  const staticSlug = PROJECT_STATIC_SLUG_ALIASES[slug] || slug;
+  if (CUSTOM_PROJECT_SLUGS.has(staticSlug)) {
+    return `/pages/project/${staticSlug}.html`;
+  }
+  return `/pages/project/project-detail.html?slug=${encodeURIComponent(slug)}`;
 }
 
 function getProjectCoverImage(item = {}) {
