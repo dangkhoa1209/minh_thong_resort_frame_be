@@ -17,6 +17,7 @@ const dashboardRoutes = require("./src/modules/dashboard/dashboard.routes");
 const mediaRoutes = require('./src/modules/media/media.routes');
 const publicHomeRoutes = require('./src/modules/public/home.routes');
 const { adminSettingRouter, publicSettingRouter } = require('./src/modules/settings/setting.routes');
+const { renderProjectDetailPageController } = require('./src/modules/public/home.controller');
 
 const app = express();
 const env = getEnv();
@@ -34,6 +35,7 @@ app.use(express.json({ limit: '2mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
+app.get('/pages/project/project-detail.html', renderProjectDetailPageController);
 app.use('/api/mail', mailRoutes);
 app.use('/api/admin/auth', authRoutes);
 app.use('/api/admin/projects', projectRoutes);
