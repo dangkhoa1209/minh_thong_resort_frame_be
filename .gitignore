@@ -41,3 +41,8 @@ uploads/*
 !uploads/default/**
 uploads/user/
 uploads/update/
+.
+# Environment files
+.env.development
+.env.production
+.env
