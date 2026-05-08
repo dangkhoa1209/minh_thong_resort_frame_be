@@ -25,16 +25,35 @@ async function migrateLegacyIfNeeded() {
 
 async function getCollaborationValue() {
   const migrated = await migrateLegacyIfNeeded();
-  if (migrated) return { images: migrated.images || [] };
+  if (migrated) {
+    return {
+      title: String(migrated.title || "").trim(),
+      subtitle: String(migrated.subtitle || "").trim(),
+      content: String(migrated.content || "").trim(),
+      images: Array.isArray(migrated.images) ? migrated.images : [],
+    };
+  }
 
   const item = await Collaboration.findOne({ scope: DEFAULT_SCOPE }).lean();
-  return { images: Array.isArray(item?.images) ? item.images : [] };
+  return {
+    title: String(item?.title || "").trim(),
+    subtitle: String(item?.subtitle || "").trim(),
+    content: String(item?.content || "").trim(),
+    images: Array.isArray(item?.images) ? item.images : [],
+  };
 }
 
 async function upsertCollaborationValue(value) {
+  const title = String(value?.title || "").trim();
+  const subtitle = String(value?.subtitle || "").trim();
+  const content = String(value?.content || "").trim();
   const images = Array.isArray(value?.images) ? value.images : [];
-  await Collaboration.updateOne({ scope: DEFAULT_SCOPE }, { $set: { images } }, { upsert: true });
-  return { images };
+  await Collaboration.updateOne(
+    { scope: DEFAULT_SCOPE },
+    { $set: { title, subtitle, content, images } },
+    { upsert: true }
+  );
+  return { title, subtitle, content, images };
 }
 
 module.exports = { getCollaborationValue, upsertCollaborationValue };

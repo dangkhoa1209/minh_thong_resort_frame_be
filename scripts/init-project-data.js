@@ -3,6 +3,7 @@ const { connectDatabase } = require("../src/config/database");
 const { Setting } = require("../src/modules/settings/setting.model");
 const { Project } = require("../src/modules/projects/project.model");
 const { ShowcaseItem } = require("../src/modules/showcase/showcase.model");
+const { Collaboration } = require("../src/modules/collaboration/collaboration.model");
 
 const SHOWCASE_TYPES = {
   home: "home_highlight",
@@ -51,6 +52,15 @@ const homePartnersData = {
     "/uploads/default/partners/asset-5.svg",
     "/uploads/default/partners/asset-6.svg",
   ],
+};
+
+const collaborationData = {
+  scope: "default",
+  title: "Visual Campaign",
+  subtitle: "Architecture, Atmosphere & the Art of Hospitality",
+  content:
+    "**At Abel Dang Production**, we see every resort as a living narrative told through its architecture, the emotions it stirs, the spaces it defines, and the sensory journeys it offers, both physical and emotional.\n\nThrough aerial perspectives and cinematic imagery, we highlight the architectural soul of each resort - where regional culture is thoughtfully woven into the landscape of hospitality.\n\n**Each photoset is designed to:**\n- Highlight signature spaces and architectural identity with a cinematic lens.\n- Reflect authentic guest experiences and resort level service offerings.\n- Support resorts in multi platform brand communications: website, social media, brochures, and beyond.\n\nThis campaign is active and evolving, with new resort collaborations shaped monthly through shared creative vision.\n\nPlease contact us via email [abeldang@dangvuproduction.com](mailto:abeldang@dangvuproduction.com).",
+  images: [],
 };
 
 function buildProject({
@@ -255,6 +265,15 @@ async function upsertSettings() {
   );
 }
 
+async function upsertCollaboration() {
+  const { scope, ...payload } = collaborationData;
+  await Collaboration.updateOne(
+    { scope },
+    { $set: payload },
+    { upsert: true }
+  );
+}
+
 async function upsertProjects(projectsData) {
   await Project.bulkWrite(
     projectsData.map((payload) => {
@@ -336,6 +355,7 @@ async function run() {
   await connectDatabase(mongoUri);
   const projectsData = buildProjectsData();
   await upsertSettings();
+  await upsertCollaboration();
   await upsertProjects(projectsData);
   await upsertShowcaseItems();
 
