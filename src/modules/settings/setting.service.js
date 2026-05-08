@@ -2,6 +2,7 @@ const { Setting } = require("./setting.model");
 
 async function getSettingValue(key, fallback = {}) {
   const item = await Setting.findOne({ key }).lean();
+  console.log(item);
   return item ? item.value : fallback;
 }
 

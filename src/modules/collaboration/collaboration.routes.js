@@ -4,7 +4,7 @@ const {
   getCollaborationImagesAdminController,
   updateCollaborationImagesAdminController,
   getCollaborationImagesPublicController,
-} = require("../settings/setting.controller");
+} = require("./collaboration.controller");
 
 const adminRouter = express.Router();
 const publicRouter = express.Router();
