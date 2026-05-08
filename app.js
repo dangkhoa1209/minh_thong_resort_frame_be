@@ -17,6 +17,10 @@ const dashboardRoutes = require("./src/modules/dashboard/dashboard.routes");
 const mediaRoutes = require('./src/modules/media/media.routes');
 const publicHomeRoutes = require('./src/modules/public/home.routes');
 const { adminSettingRouter, publicSettingRouter } = require('./src/modules/settings/setting.routes');
+const {
+  adminCollaborationRouter,
+  publicCollaborationRouter,
+} = require("./src/modules/collaboration/collaboration.routes");
 const { renderProjectDetailPageController } = require('./src/modules/public/home.controller');
 
 const app = express();
@@ -44,9 +48,11 @@ app.use("/api/admin/home-highlights", homeHighlightRoutes);
 app.use("/api/admin/hero-slides", heroSlideRoutes);
 app.use("/api/admin/contacts", contactSubmissionRoutes);
 app.use('/api/admin/settings', adminSettingRouter);
+app.use("/api/admin/collaboration-images", adminCollaborationRouter);
 app.use('/api/admin/media', mediaRoutes);
 app.use('/api/public', publicHomeRoutes);
 app.use('/api/public/settings', publicSettingRouter);
+app.use("/api/public/collaboration-images", publicCollaborationRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
